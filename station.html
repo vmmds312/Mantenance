@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Stasiun Cetak MDS</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap">
+<style>
+:root{--bg1:#fff1f2;--bg2:#fde2e4;--card:rgba(255,255,255,.55);--inp:rgba(255,255,255,.75);--ink:#2a0a0e;--mute:#8a5a60;--line:rgba(179,0,27,.16);--sh:rgba(190,30,45,.14);--r1:#ef3b4a;--r2:#b3001b;--blob:#f9c3c8;--warn:#8a5a00;--warnbg:#fff4d6;--errbg:#fde4e6;--err:#a3121f;--ok:#146b3a;--okbg:#e2f5ea;color-scheme:light}
+:root[data-theme="dark"]{--bg1:#1d0b0e;--bg2:#2c1014;--card:rgba(255,255,255,.07);--inp:rgba(255,255,255,.08);--ink:#fbe9ea;--mute:#c08b91;--line:rgba(255,255,255,.14);--sh:rgba(0,0,0,.4);--blob:#4a1a20;--warn:#ffd37a;--warnbg:#3a2f12;--err:#ff9aa3;--errbg:#40181c;--ok:#7fe0a6;--okbg:#14301f;color-scheme:dark}
+*,*::before,*::after{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;min-height:100vh;color:var(--ink);background:linear-gradient(160deg,var(--bg1),var(--bg2)) fixed;font-family:Poppins,system-ui,-apple-system,"Segoe UI",sans-serif;font-size:15px;line-height:1.5;overflow-x:hidden;padding:env(safe-area-inset-top,0px) 0 env(safe-area-inset-bottom,0px)}
+.blob{position:fixed;border-radius:50%;background:var(--blob);opacity:.7;z-index:0;pointer-events:none}
+.b1{width:260px;height:260px;left:-110px;top:-90px}.b2{width:150px;height:150px;right:-70px;top:34%}.b3{width:300px;height:300px;right:-120px;bottom:-130px}
+.wrap{position:relative;z-index:1;max-width:720px;margin:0 auto;padding:20px 16px 40px;display:grid;gap:18px}
+.bar{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.brand{display:flex;align-items:center;gap:12px;min-width:0}
+.logo{flex:none;width:52px;height:52px;border-radius:16px;display:grid;place-items:center;color:#fff;font-weight:800;font-size:17px;letter-spacing:1px;background:linear-gradient(135deg,var(--r1),var(--r2));box-shadow:0 8px 20px var(--sh),inset 0 2px 4px rgba(255,255,255,.35)}
+h1{font-size:20px;line-height:1.2;margin:0}
+p.sub{margin:2px 0 0;color:var(--mute);font-size:12px;line-height:1.35}
+.tools{display:flex;gap:8px;flex:none}
+button{font:inherit;font-weight:600;border:0;border-radius:14px;padding:0 16px;height:44px;cursor:pointer;color:var(--r2);background:var(--card);border:1px solid var(--line);box-shadow:0 6px 16px var(--sh)}
+#theme{width:44px;padding:0;font-size:18px;color:var(--ink)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:24px;padding:18px;box-shadow:0 10px 28px var(--sh);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+.stat{display:flex;align-items:center;gap:14px}
+.dot{flex:none;width:16px;height:16px;border-radius:50%;background:#aaa}
+.dot.ok{background:#1fa35a;box-shadow:0 0 0 6px rgba(31,163,90,.18)}
+.dot.busy{background:#e8a200;box-shadow:0 0 0 6px rgba(232,162,0,.2);animation:p 1s infinite}
+.dot.err{background:#d6202f;box-shadow:0 0 0 6px rgba(214,32,47,.18)}
+@keyframes p{50%{opacity:.4}}
+.big{font-size:18px;font-weight:700;line-height:1.3}
+.mini{color:var(--mute);font-size:12px}
+.sw{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:16px;padding-top:14px;border-top:1px solid var(--line);font-weight:600;font-size:14px}
+.sw input{width:22px;height:22px;accent-color:var(--r2)}
+h2{font-size:15px;margin:0 0 10px}
+.log{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.log li{display:flex;justify-content:space-between;gap:10px;padding:9px 12px;border-radius:14px;font-size:13px;background:var(--okbg);color:var(--ok)}
+.log li.gagal{background:var(--errbg);color:var(--err)}
+.log span:first-child{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.empty{color:var(--mute);font-size:13px}
+details summary{cursor:pointer;font-weight:600}
+details ol{margin:10px 0 0;padding-left:20px;font-size:13px;display:grid;gap:8px}
+input{width:100%;font:inherit;color:var(--ink);padding:0 14px;height:48px;border:1px solid var(--line);border-radius:16px;background:var(--inp);box-shadow:0 4px 12px var(--sh);margin:10px 0}
+.go{width:100%;height:50px;color:#fff;background:linear-gradient(90deg,var(--r1),var(--r2));border:0;border-radius:999px;box-shadow:0 10px 26px rgba(179,0,27,.38)}
+code{font-family:Consolas,monospace;font-size:12px;background:var(--inp);padding:2px 6px;border-radius:6px;word-break:break-all}
+</style>
+<script>if(matchMedia("(prefers-color-scheme: dark)").matches)document.documentElement.setAttribute("data-theme","dark")</script>
+</head>
+<body>
+<script src="config.js"></script>
+<div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div>
+<div class="wrap">
+  <header class="bar">
+    <div class="brand"><div class="logo">MDS</div><div><h1>Stasiun Cetak</h1><p class="sub">Biarkan halaman ini terbuka di PC yang tersambung ke printer.</p></div></div>
+    <div class="tools"><button id="theme" type="button" aria-label="Ganti tema">☾</button><button id="logout" type="button">Ganti kunci</button></div>
+  </header>
+  <section class="card" id="keyCard" hidden>
+    <h2>Masukkan kunci stasiun</h2>
+    <p class="mini">Kunci ini sama dengan STASIUN_KEY di Apps Script (file Antrian). Cukup dimasukkan sekali di PC ini.</p>
+    <input id="key" type="password" autocomplete="off" placeholder="Kunci stasiun">
+    <button id="keyOk" class="go" type="button">Simpan dan mulai</button>
+    <p class="mini" id="keyMsg" style="margin-top:10px"></p>
+  </section>
+  <div id="main" hidden style="display:grid;gap:18px">
+  <section class="card">
+    <div class="stat"><div class="dot" id="dot"></div><div><div class="big" id="st">Menyiapkan…</div><div class="mini" id="st2"></div></div></div>
+    <label class="sw"><span>Cetak otomatis</span><input type="checkbox" id="auto" checked></label>
+  </section>
+  <section class="card">
+    <h2>Riwayat <span class="mini" id="cnt"></span></h2>
+    <ul class="log" id="log"></ul>
+    <div class="empty" id="empty">Belum ada cetakan sejak halaman ini dibuka.</div>
+  </section>
+  <section class="card">
+    <details>
+      <summary>Pengaturan PC supaya mencetak tanpa dialog</summary>
+      <ol>
+        <li>Buat dua shortcut Edge, satu untuk tiap ukuran kertas (profil terpisah supaya masing-masing mengingat ukuran kertasnya):<br>A4: <code>"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe" --kiosk-printing --user-data-dir="C:\StasiunA4" https://vmmds312.github.io/order-pop/station.html?kertas=a4</code><br>A3: <code>"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe" --kiosk-printing --user-data-dir="C:\StasiunA3" https://vmmds312.github.io/order-pop/station.html?kertas=a3</code></li>
+        <li>Setelan sekali untuk A3: buka shortcut yang sama <b>tanpa</b> <code>--kiosk-printing</code>, tekan Ctrl+P, pilih printer dan Paper size <b>A3</b>, lalu tutup dialognya.</li>
+        <li>Buka kedua shortcut dan masukkan kunci stasiun di masing-masing. Jangan minimize jendelanya, dan atur Windows supaya tidak tidur.</li>
+      </ol>
+    </details>
+  </section>
+  </div>
+</div>
+<script>
+var $=function(i){return document.getElementById(i)};
+var API=window.MDS_API||'',POLL_MS=5000,KEYK='mds_station_key';
+var KERTAS=(new URLSearchParams(location.search).get('kertas')||'').toLowerCase();if(KERTAS!=='a3'&&KERTAS!=='a4')KERTAS='';
+var KLBL=KERTAS?' '+KERTAS.toUpperCase():'';
+document.title='Stasiun Cetak'+KLBL+' MDS';
+document.querySelector('h1').textContent='Stasiun Cetak'+KLBL;
+var busy=false,count=0,timer=null,logs=[],stopped=true;
+function key(){return localStorage.getItem(KEYK)||''}
+function post(b){return fetch(API,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(b)}).then(function(r){return r.json()})}
+function setSt(cls,t,t2){$('dot').className='dot '+cls;$('st').textContent=t;$('st2').textContent=t2||''}
+function hhmm(){var d=new Date();return ('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2)}
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+function addLog(job,st){
+  logs.unshift({t:hhmm(),l:job.label+((job.copies||1)>1?' ×'+job.copies:''),u:job.user,s:st});logs=logs.slice(0,8);if(st==='selesai')count++;
+  $('empty').hidden=true;$('cnt').textContent='('+count+' selesai)';
+  $('log').innerHTML=logs.map(function(x){return '<li class="'+(x.s==='gagal'?'gagal':'')+'"><span>'+x.t+' · '+esc(x.l)+' · '+esc(x.u)+'</span><span>'+x.s+'</span></li>'}).join('');
+}
+function printJob(job){
+  return new Promise(function(res,rej){
+    var w=job.w,h=job.h,n=Math.max(1,Math.min(50,job.copies||1)),f=document.createElement('iframe');
+    f.style.cssText='position:fixed;right:0;bottom:0;width:0;height:0;border:0';document.body.appendChild(f);
+    var d=f.contentWindow.document;d.open();
+    d.write('<!doctype html><html><head><meta charset="utf-8"><title>POP</title><style>@page{size:'+w+'mm '+h+'mm;margin:0}html,body{margin:0;padding:0;background:#fff}img{display:block;width:'+w+'mm;height:'+h+'mm;break-after:page;page-break-after:always}img:last-child{break-after:auto;page-break-after:auto}</style></head><body></body></html>');d.close();
+    var loaded=0,failed=false;
+    function ready(){
+      if(failed)return;
+      if(++loaded<n)return;
+      try{f.contentWindow.focus();f.contentWindow.print()}catch(e){f.remove();rej(e);return}
+      setTimeout(function(){f.remove();res()},Math.min(3000+n*600,30000));
+    }
+    for(var k=0;k<n;k++){
+      var im=d.createElement('img');
+      im.onerror=function(){if(!failed){failed=true;f.remove();rej(new Error('gambar'))}};
+      im.onload=ready;
+      im.src=job.img;
+      d.body.appendChild(im);
+    }
+  });
+}
+function next(ms){clearTimeout(timer);if(stopped)return;timer=setTimeout(tick,ms||POLL_MS)}
+function idle(){setSt('ok','Siap menerima cetakan'+KLBL,'Memeriksa antrian tiap '+(POLL_MS/1000)+' detik')}
+function showKey(msg){stopped=true;clearTimeout(timer);$('main').hidden=true;$('keyCard').hidden=false;$('keyMsg').textContent=msg||'';$('key').value=''}
+function showMain(){$('keyCard').hidden=true;$('main').hidden=false;stopped=false;idle();next(500)}
+function tick(){
+  if(stopped)return;
+  if(!$('auto').checked){setSt('','Cetak otomatis dimatikan','Nyalakan lagi untuk melanjutkan');next();return}
+  if(busy){next();return}
+  busy=true;
+  post({action:'poll',key:key(),kertas:KERTAS}).then(function(r){
+    if(!r.ok){
+      busy=false;
+      if(r.error==='kunci'||r.error==='sesi'){showKey('Kunci salah atau sudah diganti. Masukkan lagi.');return}
+      setSt('err','Server menolak ('+(r.error||'?')+')','Mencoba lagi…');next();return;
+    }
+    if(!r.job){busy=false;idle();next();return}
+    var job=r.job,kertas=(job.w===297&&job.h===420)?'A3':(job.w===210&&job.h===297)?'A4':job.w+' x '+job.h+' mm';setSt('busy','Mencetak: '+job.label,'Dari '+job.user+' · kertas '+kertas+' · '+(job.copies||1)+' lembar');
+    return printJob(job).then(function(){return post({action:'done',key:key(),id:job.id,status:'selesai'})}).then(function(){addLog(job,'selesai')})
+      .catch(function(){return post({action:'done',key:key(),id:job.id,status:'gagal'}).catch(function(){}).then(function(){addLog(job,'gagal')})})
+      .then(function(){busy=false;idle();next(1500)});
+  }).catch(function(){busy=false;setSt('err','Tidak bisa terhubung','Mencoba lagi…');next()});
+}
+$('auto').onchange=function(){if($('auto').checked)next(300)};
+$('keyOk').onclick=function(){
+  var k=$('key').value.trim();
+  if(k.length<8){$('keyMsg').textContent='Kunci minimal 8 karakter.';return}
+  $('keyMsg').textContent='Memeriksa…';
+  post({action:'ping',key:k}).then(function(r){
+    if(r.ok){localStorage.setItem(KEYK,k);showMain()}
+    else $('keyMsg').textContent='Kunci tidak cocok. Samakan dengan STASIUN_KEY di Apps Script (file Antrian) lalu deploy versi baru.';
+  }).catch(function(){$('keyMsg').textContent='Tidak bisa terhubung. Coba lagi.'});
+};
+$('key').addEventListener('keydown',function(e){if(e.key==='Enter')$('keyOk').click()});
+$('logout').onclick=function(){localStorage.removeItem(KEYK);showKey('')};
+(function(){
+  var th=$('theme'),d=document.documentElement;
+  function sync(){th.textContent=d.getAttribute('data-theme')==='dark'?'☀':'☾'}
+  th.onclick=function(){d.setAttribute('data-theme',d.getAttribute('data-theme')==='dark'?'light':'dark');sync()};sync();
+})();
+/* jaga layar tetap menyala */
+function wake(){try{if(navigator.wakeLock)navigator.wakeLock.request('screen').catch(function(){})}catch(e){}}
+document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible')wake()});
+wake();
+if(!API||API.indexOf('GANTI')===0)showKey('URL Apps Script belum diisi di config.js.');
+else if(key())showMain();
+else showKey('');
+</script>
+</body>
+</html>
