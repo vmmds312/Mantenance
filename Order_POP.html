@@ -170,45 +170,7 @@ var SIZES=[{k:"A5",w:85,h:60,o:"Landscape"},{k:"A4",w:60,h:85,o:"Portrait"},{k:"
 var CPF=[["q1","Beli berapa (X)",2,/v[1-6]/],["q2","Beli kedua (Y)",3,/v[345]/],["a","Diskon (%)",20,/v[123]/],["b","Diskon beli kedua (%)",30,/v3/],["o","Harga normal (dicoret)",179900,/v[456]/],["p1","Harga beli pertama / satuan",99900,/v[456]/],["p2","Harga beli kedua",79900,/v[45]/]];
 var st={divisi:null,size:null,rows:[{n:"",o:"",p:""}]};
 var $=function(i){return document.getElementById(i)};
-var currentView="home";
-var ORDER_POP_HISTORY_KEY="__orderPopNavigation";
-function renderView(id){
-  if(["home","cek","order"].indexOf(id)<0)id="home";
-  currentView=id;
-  ["home","cek","order"].forEach(function(x){$(x).classList.toggle("hidden",x!==id)});
-  window.scrollTo(0,0);
-}
-// Tandai entri halaman ini sebagai menu utama. Entri halaman web sebelumnya
-// tetap berada di belakangnya, sehingga Back dari menu dapat kembali ke web sebelumnya.
-var initialHistoryState=Object.assign({},history.state||{});
-initialHistoryState[ORDER_POP_HISTORY_KEY]="home";
-history.replaceState(initialHistoryState,"",location.href);
-function show(id){
-  if(["home","cek","order"].indexOf(id)<0||id===currentView)return;
-  if(id==="home"){
-    // Jika sedang berada di subhalaman aplikasi, kembali satu langkah ke menu aplikasi.
-    var currentState=history.state||{};
-    if(currentState[ORDER_POP_HISTORY_KEY]&&currentState[ORDER_POP_HISTORY_KEY]!=="home"){
-      history.back();
-    }else{
-      renderView("home");
-      var homeState=Object.assign({},currentState);
-      homeState[ORDER_POP_HISTORY_KEY]="home";
-      history.replaceState(homeState,"",location.href);
-    }
-    return;
-  }
-  var nextState={};
-  nextState[ORDER_POP_HISTORY_KEY]=id;
-  history.pushState(nextState,"",location.href);
-  renderView(id);
-}
-window.addEventListener("popstate",function(event){
-  var state=event.state||{};
-  var view=state[ORDER_POP_HISTORY_KEY];
-  // Back dari Order POP/Cek Proses kembali ke menu pilihan layanan.
-  renderView(view==="cek"||view==="order"?view:"home");
-});
+function show(id){["home","cek","order"].forEach(function(x){$(x).classList.toggle("hidden",x!==id)});window.scrollTo(0,0)}
 var brandRows=[],jenisRows=[],brandSelected=false,configLoading=false,configLoaded=false;
 function loadConfig(){
   if(configLoaded){
@@ -420,8 +382,22 @@ $('dupConfirm').onclick=async function(){
   finally{$('dupConfirm').disabled=false;$('dupConfirm').textContent='Kirim dengan alasan';if(sendButton){sendButton.disabled=false;sendButton.textContent='Kirim order'}}
 };
 function finishOrder(j){
-  sendSummary.innerHTML="<b>Order terkirim.</b><dl><dt>ID Order</dt><dd>"+esc(j.id)+"</dd></dl>Simpan ID ini untuk cek proses."+(j.gagal&&j.gagal.length?"<br><br>Perhatian: kolom "+esc(j.gagal.join(", "))+" tidak tersimpan. Beri tahu admin.":"")+"<button class='go' type='button' onclick='location.reload()'>Buat order baru</button>";
+  sendSummary.innerHTML="<b>Order terkirim.</b><dl><dt>ID Order</dt><dd>"+esc(j.id)+"</dd></dl>Simpan ID ini untuk cek proses."+(j.gagal&&j.gagal.length?"<br><br>Perhatian: kolom "+esc(j.gagal.join(", "))+" tidak tersimpan. Beri tahu admin.":"");
+  var newBtn=document.createElement('button');
+  newBtn.type='button';newBtn.className='go';newBtn.textContent='Buat Order Baru';
+  newBtn.onclick=function(){location.reload()};
+  var checkBtn=document.createElement('button');
+  checkBtn.type='button';checkBtn.className='go';checkBtn.style.marginTop='10px';
+  checkBtn.textContent='Cek Proses Order';
+  checkBtn.onclick=function(){goCheckNewOrder(j.id)};
+  sendSummary.appendChild(newBtn);sendSummary.appendChild(checkBtn);
   sendButton.classList.add('hidden');sendSummary.classList.remove('hidden');
+}
+function goCheckNewOrder(id){
+  show('cek');
+  $('cekId').value=String(id||'');
+  $('cekRes').classList.add('hidden');
+  $('cekBtn').click();
 }
 $('send').onclick=async function(){
   var s=$('sum'),b=$('send');s.classList.add('hidden');
