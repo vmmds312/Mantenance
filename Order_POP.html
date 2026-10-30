@@ -193,18 +193,11 @@ function renderBrandHints(){
   box.classList.toggle('hidden',!found.length);$('brand').setAttribute('aria-expanded',found.length?'true':'false');
   [].forEach.call(box.querySelectorAll('button'),function(b){b.onclick=function(){
     $('brand').value=b.dataset.brand;brandSelected=true;box.classList.add('hidden');$('brand').setAttribute('aria-expanded','false');
-    $('brandInfo').textContent='Brand dipilih: '+b.dataset.brand;configureHeaders();
+    $('brandInfo').textContent='Brand dipilih: '+b.dataset.brand;
   }});
 }
 function codeHeader(label){var m={'new arrival':'na','harga terbaik':'ht','promo':'promo','reguler':'reg','lainnya':'lain'};return m[norm(label)]||''}
 function codeJenis(label){var m={'special price (harga coret)':'sp','special price':'sp','mulai dari':'md','campaign':'cp','sale (khusus event sale)':'sl','sale':'sl','product highlight':'ph','daftar 5 harga':'l5'};return m[norm(label)]||''}
-function configureHeaders(){
-  var brand=$('brand').value,seen={},headers=brandRows.filter(function(x){return norm(x.Brand)===norm(brand)}).map(function(x){return x.Header}).filter(function(x){var k=norm(x);if(!k||seen[k])return false;seen[k]=true;return true;});
-  var h=$('header');h.innerHTML='<option value="">Pilih header</option>';
-  headers.forEach(function(label){var code=codeHeader(label);if(code)h.add(new Option(label,code));});
-  h.value='';$('promo').innerHTML='';$('lain').innerHTML='';$('promo').classList.add('hidden');$('lain').classList.add('hidden');
-  $('header').dispatchEvent(new Event('change'));
-}
 function configureJenis(){
   var h=$('header'),label=h.options[h.selectedIndex]?h.options[h.selectedIndex].text:'';
   var items=jenisRows.filter(function(x){return norm(x.Header)===norm(label)}).map(function(x){return x['Jenis POP'];});
@@ -222,7 +215,7 @@ var esc=function(t){return String(t).replace(/[&<>"]/g,function(c){return{"&":"&
 function type(){var h=$("header").value;return h==="promo"?$("promo").value:h==="lain"?$("lain").value:h}
 function maxN(){var t=type(),big=st.size!=="A5";if(t==="md")return 1;if(t==="l5")return 5;if(t==="sp")return big?6:2;return big?3:2}
 
-[1,2,3,4].forEach(function(v){var b=document.createElement("button");b.className="chip";b.type="button";b.textContent=v;b.setAttribute("aria-pressed","false");b.onclick=function(){st.divisi=v;[].forEach.call($("divisi").children,function(c){c.setAttribute("aria-pressed",c===b)});$('brand').disabled=false;$('brand').placeholder='Ketik untuk mencari brand';$('brand').value='';brandSelected=false;$('header').innerHTML='<option value="">Pilih header</option>';$('promo').innerHTML='';$('lain').innerHTML='';$('brandInfo').textContent='Memuat brand untuk Divisi '+v+'...';loadConfig();renderBrandHints()};$("divisi").appendChild(b)});
+[1,2,3,4].forEach(function(v){var b=document.createElement("button");b.className="chip";b.type="button";b.textContent=v;b.setAttribute("aria-pressed","false");b.onclick=function(){st.divisi=v;[].forEach.call($("divisi").children,function(c){c.setAttribute("aria-pressed",c===b)});$('brand').disabled=false;$('brand').placeholder='Ketik untuk mencari brand';$('brand').value='';brandSelected=false;$('header').value='';$('promo').innerHTML='';$('lain').innerHTML='';$('promo').classList.add('hidden');$('lain').classList.add('hidden');$('brandInfo').textContent='Memuat brand untuk Divisi '+v+'...';$('header').dispatchEvent(new Event('change'));loadConfig();renderBrandHints()};$("divisi").appendChild(b)});
 function buildSizes(){var t=type(),L=SIZES.filter(function(z){return!z.only||(z.only==="ph"&&t==="ph")||(z.only==="cb"&&t==="sl"&&$("slv").value==="cb")});
   if(t==="l5"){L=L.filter(function(z){return z.k==="A5"});st.size="A5"}
   if(st.size&&!L.some(function(z){return z.k===st.size}))st.size=null;
@@ -285,7 +278,15 @@ function check(){
   if(!$("brand").value.trim())m.push(["e","Brand belum diisi."]);else if(!brandSelected)m.push(["e","Pilih brand dari daftar yang tersedia."]);
   if(!st.divisi)m.push(["e","Divisi belum dipilih."]);
   if(!$("header").value)m.push(["e","Header belum dipilih."]);
-  if(($("header").value==="promo"||$("header").value==="lain")&&!type())m.push(["e","Jenis POP belum tersedia untuk Header ini. Periksa sheet JENIS_POP."]);
+  var headerLabel=$("header").options[$("header").selectedIndex] ? $("header").options[$("header").selectedIndex].text : "";
+  var configuredJenis=jenisRows.filter(function(x){return norm(x.Header)===norm(headerLabel)});
+  if($("header").value==="promo"||$("header").value==="lain"){
+    var jenisEl=$("header").value==="promo"?$("promo"):$("lain");
+    var selectedJenis=jenisEl.options[jenisEl.selectedIndex]?jenisEl.options[jenisEl.selectedIndex].text:"";
+    if(!type()||!configuredJenis.some(function(x){return norm(x["Jenis POP"])===norm(selectedJenis)}))m.push(["e","Jenis POP belum tersedia untuk Header ini. Periksa sheet JENIS_POP."]);
+  } else if(!configuredJenis.some(function(x){return norm(x["Jenis POP"])===norm(headerLabel)})){
+    m.push(["e","Header ini belum memiliki Jenis POP yang sesuai di sheet JENIS_POP."]);
+  }
   if(!st.size)m.push(["e","Ukuran kertas belum dipilih."]);
   if(t==="cp"){
     var v=$("cpv").value,q1=g("q1"),q2=g("q2");
@@ -331,7 +332,7 @@ function check(){
   $("msgs").innerHTML=m.map(function(x){return'<li class="'+x[0]+'">'+x[1]+"</li>"}).join("");
   return !m.some(function(x){return x[0]==="e"});
 }
-var APPS_URL="https://script.google.com/macros/s/AKfycbyqeTUmXu6m7KEsf1VP1QfVSnctCMy9ALmRWu4HX2trHLx1Co8IIrLCfKB-H_F2-Ta4lg/exec";/* tempel URL web app Apps Script (berakhiran /exec) di sini */
+var APPS_URL="https://script.google.com/macros/s/AKfycbyJbFFOVxoDI1q9sTEFcG2FV7VjZlrL0J3GtWd3I2SvZM7BH8-I5_lkAVpm-aaiXVfz7g/exec";/* tempel URL web app Apps Script (berakhiran /exec) di sini */
 function plain(t){
   var rp=function(x){return"Rp"+x};
   if(t==="lc")return"Coret "+rp($("lca").value)+($("lcb").value?" - "+rp($("lcb").value):"")+" jadi "+rp($("lcp").value);
