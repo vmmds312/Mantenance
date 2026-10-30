@@ -170,7 +170,31 @@ var SIZES=[{k:"A5",w:85,h:60,o:"Landscape"},{k:"A4",w:60,h:85,o:"Portrait"},{k:"
 var CPF=[["q1","Beli berapa (X)",2,/v[1-6]/],["q2","Beli kedua (Y)",3,/v[345]/],["a","Diskon (%)",20,/v[123]/],["b","Diskon beli kedua (%)",30,/v3/],["o","Harga normal (dicoret)",179900,/v[456]/],["p1","Harga beli pertama / satuan",99900,/v[456]/],["p2","Harga beli kedua",79900,/v[45]/]];
 var st={divisi:null,size:null,rows:[{n:"",o:"",p:""}]};
 var $=function(i){return document.getElementById(i)};
-function show(id){["home","cek","order"].forEach(function(x){$(x).classList.toggle("hidden",x!==id)});window.scrollTo(0,0)}
+var currentView="home";
+function renderView(id){
+  if(["home","cek","order"].indexOf(id)<0)id="home";
+  currentView=id;
+  ["home","cek","order"].forEach(function(x){$(x).classList.toggle("hidden",x!==id)});
+  window.scrollTo(0,0);
+}
+// Tandai halaman utama sebagai titik kembali untuk tombol Back Android/browser.
+history.replaceState({orderPopView:"home"},"",location.href);
+function show(id){
+  if(["home","cek","order"].indexOf(id)<0)return;
+  if(id===currentView)return;
+  if(id==="home"){
+    // Kembali lewat riwayat agar tombol Back dan tombol Kembali konsisten.
+    if(history.state&&history.state.orderPopView&&history.state.orderPopView!=="home")history.back();
+    else renderView("home");
+    return;
+  }
+  history.pushState({orderPopView:id},"",location.href);
+  renderView(id);
+}
+window.addEventListener("popstate",function(event){
+  var view=event.state&&event.state.orderPopView;
+  renderView(view||"home");
+});
 var brandRows=[],jenisRows=[],brandSelected=false,configLoading=false,configLoaded=false;
 function loadConfig(){
   if(configLoaded){
@@ -249,6 +273,14 @@ function render(){
   $("promo").classList.toggle("hidden",h!=="promo");
   $("lain").classList.toggle("hidden",h!=="lain");
   buildSizes();
+  // Ukuran A5 selalu menggunakan cetak satu sisi.
+  var bolak=$("bolak");
+  if(st.size==="A5"){
+    bolak.value="Tidak";
+    bolak.disabled=true;
+  }else{
+    bolak.disabled=false;
+  }
   $("slBox").classList.toggle("hidden",t!=="sl");
   $("phBox").classList.toggle("hidden",t!=="ph");$("lcBox").classList.toggle("hidden",t!=="lc");
   if(t==="sl")slFields();
