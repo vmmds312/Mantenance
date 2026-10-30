@@ -171,29 +171,43 @@ var CPF=[["q1","Beli berapa (X)",2,/v[1-6]/],["q2","Beli kedua (Y)",3,/v[345]/],
 var st={divisi:null,size:null,rows:[{n:"",o:"",p:""}]};
 var $=function(i){return document.getElementById(i)};
 var currentView="home";
+var ORDER_POP_HISTORY_KEY="__orderPopNavigation";
 function renderView(id){
   if(["home","cek","order"].indexOf(id)<0)id="home";
   currentView=id;
   ["home","cek","order"].forEach(function(x){$(x).classList.toggle("hidden",x!==id)});
   window.scrollTo(0,0);
 }
-// Tandai halaman utama sebagai titik kembali untuk tombol Back Android/browser.
-history.replaceState({orderPopView:"home"},"",location.href);
+// Tandai entri halaman ini sebagai menu utama. Entri halaman web sebelumnya
+// tetap berada di belakangnya, sehingga Back dari menu dapat kembali ke web sebelumnya.
+var initialHistoryState=Object.assign({},history.state||{});
+initialHistoryState[ORDER_POP_HISTORY_KEY]="home";
+history.replaceState(initialHistoryState,"",location.href);
 function show(id){
-  if(["home","cek","order"].indexOf(id)<0)return;
-  if(id===currentView)return;
+  if(["home","cek","order"].indexOf(id)<0||id===currentView)return;
   if(id==="home"){
-    // Kembali lewat riwayat agar tombol Back dan tombol Kembali konsisten.
-    if(history.state&&history.state.orderPopView&&history.state.orderPopView!=="home")history.back();
-    else renderView("home");
+    // Jika sedang berada di subhalaman aplikasi, kembali satu langkah ke menu aplikasi.
+    var currentState=history.state||{};
+    if(currentState[ORDER_POP_HISTORY_KEY]&&currentState[ORDER_POP_HISTORY_KEY]!=="home"){
+      history.back();
+    }else{
+      renderView("home");
+      var homeState=Object.assign({},currentState);
+      homeState[ORDER_POP_HISTORY_KEY]="home";
+      history.replaceState(homeState,"",location.href);
+    }
     return;
   }
-  history.pushState({orderPopView:id},"",location.href);
+  var nextState={};
+  nextState[ORDER_POP_HISTORY_KEY]=id;
+  history.pushState(nextState,"",location.href);
   renderView(id);
 }
 window.addEventListener("popstate",function(event){
-  var view=event.state&&event.state.orderPopView;
-  renderView(view||"home");
+  var state=event.state||{};
+  var view=state[ORDER_POP_HISTORY_KEY];
+  // Back dari Order POP/Cek Proses kembali ke menu pilihan layanan.
+  renderView(view==="cek"||view==="order"?view:"home");
 });
 var brandRows=[],jenisRows=[],brandSelected=false,configLoading=false,configLoaded=false;
 function loadConfig(){
